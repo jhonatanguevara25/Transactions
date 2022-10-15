@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const routes = require("./transaction");
 
 /*const routesBodeguero = require("./routesBodeguero");
 const routesCategoria = require("./routesCategoria");
@@ -17,6 +18,8 @@ app.use(cors());
 app.get("/", (req, res) => {
   res.send("Api funcionando");
 });
+
+app.use("/api/transaccion", routes);
 
 /*app.use("/api/bodeguero", routesBodeguero);
 app.use("/api/categoria", routesCategoria);

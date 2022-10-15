@@ -113,3 +113,5 @@ async function transferMoney(client, account1, account2, amount) {
     await session.endSession();
   }
 }
+
+module.exports = routes;
