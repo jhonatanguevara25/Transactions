@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const routes = require("./transaction");
 const routesBD = require("./read");
+const routesOrden = require("./orders");
 
 const app = express();
 app.set("port", process.env.PORT || 5000);
@@ -16,6 +17,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/transaccion", routes);
 app.use("/api/read", routesBD);
+app.use("/api/ordenes", routesOrden);
 
 // server running -----------------------------------
 app.listen(app.get("port"), () => {
