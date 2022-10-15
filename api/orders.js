@@ -29,7 +29,7 @@ async function comprar(client, userId, productID, quantity, status) {
 
   const inventoryCollection = client
     .db("yarashop-products")
-    .collection("inventory");
+    .collection("inventario");
 
   const session = client.startSession();
 
