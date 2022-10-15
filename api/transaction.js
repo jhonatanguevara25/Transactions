@@ -1,10 +1,41 @@
 // In MongoDB 4.2 and earlier, CRUD operations in transactions must be on existing collections
 // See https://docs.mongodb.com/manual/core/transactions/#transactions-api for more information
 // Be sure you have run usersCollection.js prior to running this script
-import { MongoClient } from "mongodb";
+const { MongoClient } = require("mongodb");
+const express = require("express");
+const routes = express.Router();
 
-document.getElementById("buton").onclick = async () => {
-  console.log("Me han penetrao");
+routes.get("/", (req, res) => {
+  async function burras() {
+    const uri =
+      "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
+    const client = new MongoClient(uri);
+
+    try {
+      // Connect to the MongoDB cluster
+      await client.connect();
+
+      // Make the appropriate DB calls
+
+      await createReservation(
+        client,
+        "leslie@example.com",
+        "New York City - Upper West Side Apt",
+        [new Date("2019-12-31"), new Date("2020-01-01")],
+        {
+          pricePerNight: 180,
+          specialRequests: "Late checkout",
+          breakfastIncluded: true,
+        }
+      );
+    } finally {
+      // Close the connection to the MongoDB cluster
+      await client.close();
+    }
+  }
+});
+
+async function main() {
   // await promiseExample();
   //const { MongoClient } = require("mongodb");
 
@@ -45,7 +76,9 @@ document.getElementById("buton").onclick = async () => {
     // Close the connection to the MongoDB cluster
     await client.close();
   }
-};
+}
+
+main().catch(console.error);
 
 /**
  * Create a reservation by storing information in both the users collection and the listingsAndReviews collection

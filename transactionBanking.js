@@ -48,8 +48,8 @@ async function main() {
     // Connect to the MongoDB cluster
     await client.connect();
 
-    // Transfer $100 from "account1" to "account2"
-    await transferMoney(client, "account2", "account1", 150);
+    // Transfer $100 from "account2" to "account1"
+    await transferMoney(client, "account1", "account3", 100);
   } finally {
     // Close the connection to the MongoDB cluster
     await client.close();
