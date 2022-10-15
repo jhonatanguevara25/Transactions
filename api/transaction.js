@@ -4,7 +4,8 @@ const routes = express.Router();
 
 routes.get("/:id/:cantidad", (req, res) => {
   const id = req.params.id;
-  const cantidad = req.params.cantidad;
+  var cantidad = req.params.cantidad;
+  cantidad = cantidad * 1.0;
   async function transaccion() {
     const uri =
       "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";

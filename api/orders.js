@@ -7,36 +7,18 @@ routes.get("/:id", (req, res) => {
   async function ventasInventario() {
     const uri =
       "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
-    const client = new MongoClient(uri);
-    if (id == 1) {
-      //Izquierda a Derecha
-      try {
-        // Connect to the MongoDB cluster
-        await client.connect();
 
-        // Transfer $100 from "account1" to "account2"
-        await transferMoney(client, "account1", "account2", 100);
-        res.send("Execution Correct");
-      } catch (e) {
-        res.send("Unexpected Error: ", e);
-      } finally {
-        // Close the connection to the MongoDB cluster
-        await client.close();
-      }
-    } else if (id == 2) {
-      // Derecha a Izquierda
-      try {
-        // Connect to the MongoDB cluster
-        await client.connect();
-        // Transfer $100 from "account2" to "account1"
-        await transferMoney(client, "account2", "account1", 100);
-        res.send("Execution Correct");
-      } catch (e) {
-        res.send("Unexpected Error: ", e);
-      } finally {
-        // Close the connection to the MongoDB cluster
-        await client.close();
-      }
+    const client = new MongoClient(uri);
+
+    try {
+      // Connect to the MongoDB cluster
+      await client.connect();
+
+      // User1 purchases 1 copy of parks-rec-book
+      await purchaseBook(client, "User1", "leche", 4, "paid");
+    } finally {
+      // Close the connection to the MongoDB cluster
+      await client.close();
     }
   }
 
