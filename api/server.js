@@ -1,12 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const routes = require("./transaction");
-
-/*const routesBodeguero = require("./routesBodeguero");
-const routesCategoria = require("./routesCategoria");
-const routesProducto = require("./routesProducto");
-const routesProveedor = require("./routesProveedor");
-const routesTienda = require("./routesTienda");*/
+const routesBD = require("./read");
 
 const app = express();
 app.set("port", process.env.PORT || 5000);
@@ -20,12 +15,7 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/transaccion", routes);
-
-/*app.use("/api/bodeguero", routesBodeguero);
-app.use("/api/categoria", routesCategoria);
-app.use("/api/producto", routesProducto);
-app.use("/api/proveedor", routesProveedor);
-app.use("/api/tienda", routesTienda);*/
+app.use("/api/read", routesBD);
 
 // server running -----------------------------------
 app.listen(app.get("port"), () => {
