@@ -2,10 +2,9 @@ const { MongoClient } = require("mongodb");
 const express = require("express");
 const routes = express.Router();
 
-routes.get("/:id/:cantidad", (req, res) => {
+routes.get("/:id", (req, res) => {
   const id = req.params.id;
-  const cantidad = req.params.cantidad;
-  async function transaccion() {
+  async function ventasInventario() {
     const uri =
       "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
     const client = new MongoClient(uri);
@@ -16,7 +15,7 @@ routes.get("/:id/:cantidad", (req, res) => {
         await client.connect();
 
         // Transfer $100 from "account1" to "account2"
-        await transferMoney(client, "account1", "account2", cantidad);
+        await transferMoney(client, "account1", "account2", 100);
         res.send("Execution Correct");
       } catch (e) {
         res.send("Unexpected Error: ", e);
@@ -30,7 +29,7 @@ routes.get("/:id/:cantidad", (req, res) => {
         // Connect to the MongoDB cluster
         await client.connect();
         // Transfer $100 from "account2" to "account1"
-        await transferMoney(client, "account2", "account1", cantidad);
+        await transferMoney(client, "account2", "account1", 100);
         res.send("Execution Correct");
       } catch (e) {
         res.send("Unexpected Error: ", e);
@@ -41,7 +40,7 @@ routes.get("/:id/:cantidad", (req, res) => {
     }
   }
 
-  transaccion().catch(console.error);
+  ventasInventario().catch(console.error);
 });
 
 async function transferMoney(client, account1, account2, amount) {
