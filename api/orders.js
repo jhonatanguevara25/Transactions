@@ -46,7 +46,7 @@ async function comprar(client, userId, productID, quantity, status) {
         { session }
       );
       console.log(
-        `${updateInventoryResults.matchedCount} document(s) found in the inventory collection with _id ${bookId}.`
+        `${updateInventoryResults.matchedCount} document(s) found in the inventory collection with _id ${productID}.`
       );
       console.log(
         `${updateInventoryResults.modifiedCount} document(s) was/were updated.`
