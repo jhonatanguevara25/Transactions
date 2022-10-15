@@ -3,7 +3,8 @@ const express = require("express");
 const routes = express.Router();
 
 routes.get("/:id", (req, res) => {
-  const id = req.params.id;
+  var id = req.params.id;
+  var id = id * 1.0;
   async function ventasInventario() {
     const uri =
       "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
@@ -13,7 +14,7 @@ routes.get("/:id", (req, res) => {
     try {
       await client.connect();
 
-      await comprar(client, "User1", "leche", 4, "paid");
+      await comprar(client, "User1", "leche", id, "paid");
       res.send("Operacion exitosa");
     } finally {
       await client.close();
