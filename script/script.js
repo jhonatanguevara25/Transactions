@@ -15,8 +15,11 @@
 
 
 function transferir(id) {
-    fetch(`http://localhost:5000/api/transaccion/${id}`, { method: "GET" }).then((response) => {
-        alert(response);
+    const valor =  document.getElementById("cantidad");
+    let cantidad = valor.value;
+
+    fetch(`http://localhost:5000/api/transaccion/${id}/${cantidad}`, { method: "GET" }).then((response) => {
+        alert("Transacción hecha correctamente.")
         location.reload();
     })
   }
