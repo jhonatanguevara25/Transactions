@@ -10,72 +10,24 @@ routes.get("/", (req, res) => {
     const uri =
       "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
     const client = new MongoClient(uri);
+
     try {
       // Connect to the MongoDB cluster
       await client.connect();
-      // Make the appropriate DB calls
-      await createReservation(
-        client,
-        "leslie@example.com",
-        "New York City - Upper West Side Apt",
-        [new Date("2019-12-31"), new Date("2020-01-01")],
-        {
-          pricePerNight: 180,
-          specialRequests: "Late checkout",
-          breakfastIncluded: true,
-        }
-      );
+
+      // Transfer $100 from "account2" to "account1"
+      await transferMoney(client, "account1", "account2", 100);
     } finally {
       // Close the connection to the MongoDB cluster
       await client.close();
     }
   }
+  burras().catch(console.error);
 });
 
-const { MongoClient } = require("mongodb");
-
-// In MongoDB 4.2 and earlier, CRUD operations in transactions must be on existing collections
-// See https://docs.mongodb.com/manual/core/transactions/#transactions-api for more information
-
-// Before running this script...
-//   1. Create a database named 'banking'
-//   2. Create a collection named 'accounts' in the database
-//   3. Create two documents in the 'accounts' collection:
-//         {"_id":"account1", "balance":500}
-//         {"_id":"account2", "balance":0}
-//   4: Optional: add schema validation to ensure an account balance cannot drop below 0.
-//      See https://docs.mongodb.com/manual/core/schema-validation/ for details on how to
-//      enable schema validation. Configuring schema validation in MongoDB Compass is an
-//      easy way to add schema validation to an existing database: https://docs.mongodb.com/compass/current/validation/
-//
-//      {
-//        $jsonSchema: {
-//          properties: {
-//            balance: {
-//              minimum: 0,
-//              description: 'account balance cannot be negative'
-//            }
-//          }
-//        }
-//      }
-
-// PARA PODER AGREGAR LAS VALIDACIONES, TENEMOS QUE DESCARGAR EL MONGODB COMPASS, AHÍ TENEMOS QUE INGRESAR COMO UN SUPER USUARIO.
-// ESTE SUPER USUARIO TENEMOS QUE CREARLO DESDE ATLAS EN "Database Access" y tener los roles:
-// atlasAdmin@admin
-// dbAdminAnyDatabase@admin
-
-async function main() {
-  /**
-   * Connection URI. Update <username>, <password>, and <your-cluster-url> to reflect your cluster.
-   * See https://docs.mongodb.com/drivers/node/ for more details
-   */
+/*async function main() {
   const uri =
     "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
-
-  /**
-   * The Mongo Client you will use to interact with your database
-   * See https://mongodb.github.io/node-mongodb-native/3.6/api/MongoClient.html for more details
-   */
   const client = new MongoClient(uri);
 
   try {
@@ -90,19 +42,9 @@ async function main() {
   }
 }
 
-main().catch(console.error);
+main().catch(console.error);*/
 
-/**
- * Transfer money from one bank account to another using
- * @param {MongoClient} client A MongoClient that is connected to a cluster with the banking database
- * @param {String} account1 The _id of the account where money should be subtracted
- * @param {String} account2 The _id of the account where money should be added
- * @param {Number} amount The amount of money to be transferred
- */
 async function transferMoney(client, account1, account2, amount) {
-  /**
-   * The accounts collection in the banking database
-   */
   const accountsCollection = client.db("banking").collection("accounts");
 
   // Step 1: Start a Client Session
@@ -117,13 +59,7 @@ async function transferMoney(client, account1, account2, amount) {
   };
 
   try {
-    // Step 3: Use withTransaction to start a transaction, execute the callback, and commit (or abort on error)
-    // Note: The callback for withTransaction MUST be async and/or return a Promise.
-    // See https://mongodb.github.io/node-mongodb-native/3.6/api/ClientSession.html#withTransaction for the withTransaction() docs
     const transactionResults = await session.withTransaction(async () => {
-      // Important:: You must pass the session to each of the operations
-
-      // Remove the money from the first account
       const subtractMoneyResults = await accountsCollection.updateOne(
         { _id: account1 },
         { $inc: { balance: amount * -1 } },
