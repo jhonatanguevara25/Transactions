@@ -1,57 +1,52 @@
-// In MongoDB 4.2 and earlier, CRUD operations in transactions must be on existing collections
-// See https://docs.mongodb.com/manual/core/transactions/#transactions-api for more information
-// Be sure you have run usersCollection.js prior to running this script
 const { MongoClient } = require("mongodb");
 const express = require("express");
 const routes = express.Router();
 
-routes.get("/", (req, res) => {
-  async function burras() {
+routes.get("/:id", (req, res) => {
+  const id = req.params.id;
+  async function transaccion() {
     const uri =
       "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
     const client = new MongoClient(uri);
+    if (id == 1) {
+      //Izquierda a Derecha
+      try {
+        // Connect to the MongoDB cluster
+        await client.connect();
 
-    try {
-      // Connect to the MongoDB cluster
-      await client.connect();
-
-      // Transfer $100 from "account2" to "account1"
-      await transferMoney(client, "account1", "account2", 100);
-    } finally {
-      // Close the connection to the MongoDB cluster
-      await client.close();
+        // Transfer $100 from "account1" to "account2"
+        await transferMoney(client, "account1", "account2", 100);
+        res.send("Execution Correct");
+      } catch (e) {
+        res.send("Unexpected Error: ", e);
+      } finally {
+        // Close the connection to the MongoDB cluster
+        await client.close();
+      }
+    } else if (id == 2) {
+      // Derecha a Izquierda
+      try {
+        // Connect to the MongoDB cluster
+        await client.connect();
+        // Transfer $100 from "account2" to "account1"
+        await transferMoney(client, "account2", "account1", 100);
+        res.send("Execution Correct");
+      } catch (e) {
+        res.send("Unexpected Error: ", e);
+      } finally {
+        // Close the connection to the MongoDB cluster
+        await client.close();
+      }
     }
   }
-  burras().catch(console.error);
+
+  transaccion().catch(console.error);
 });
-
-/*async function main() {
-  const uri =
-    "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
-  const client = new MongoClient(uri);
-
-  try {
-    // Connect to the MongoDB cluster
-    await client.connect();
-
-    // Transfer $100 from "account2" to "account1"
-    await transferMoney(client, "account1", "account3", 100);
-  } finally {
-    // Close the connection to the MongoDB cluster
-    await client.close();
-  }
-}
-
-main().catch(console.error);*/
 
 async function transferMoney(client, account1, account2, amount) {
   const accountsCollection = client.db("banking").collection("accounts");
-
-  // Step 1: Start a Client Session
-  // See https://mongodb.github.io/node-mongodb-native/3.6/api/MongoClient.html#startSession for the startSession() docs
   const session = client.startSession();
 
-  // Step 2: Optional. Define options for the transaction
   const transactionOptions = {
     readPreference: "primary",
     readConcern: { level: "local" },
