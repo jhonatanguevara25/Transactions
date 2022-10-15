@@ -10,13 +10,10 @@ routes.get("/", (req, res) => {
     const uri =
       "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
     const client = new MongoClient(uri);
-
     try {
       // Connect to the MongoDB cluster
       await client.connect();
-
       // Make the appropriate DB calls
-
       await createReservation(
         client,
         "leslie@example.com",
@@ -35,10 +32,39 @@ routes.get("/", (req, res) => {
   }
 });
 
-async function main() {
-  // await promiseExample();
-  //const { MongoClient } = require("mongodb");
+const { MongoClient } = require("mongodb");
 
+// In MongoDB 4.2 and earlier, CRUD operations in transactions must be on existing collections
+// See https://docs.mongodb.com/manual/core/transactions/#transactions-api for more information
+
+// Before running this script...
+//   1. Create a database named 'banking'
+//   2. Create a collection named 'accounts' in the database
+//   3. Create two documents in the 'accounts' collection:
+//         {"_id":"account1", "balance":500}
+//         {"_id":"account2", "balance":0}
+//   4: Optional: add schema validation to ensure an account balance cannot drop below 0.
+//      See https://docs.mongodb.com/manual/core/schema-validation/ for details on how to
+//      enable schema validation. Configuring schema validation in MongoDB Compass is an
+//      easy way to add schema validation to an existing database: https://docs.mongodb.com/compass/current/validation/
+//
+//      {
+//        $jsonSchema: {
+//          properties: {
+//            balance: {
+//              minimum: 0,
+//              description: 'account balance cannot be negative'
+//            }
+//          }
+//        }
+//      }
+
+// PARA PODER AGREGAR LAS VALIDACIONES, TENEMOS QUE DESCARGAR EL MONGODB COMPASS, AHÍ TENEMOS QUE INGRESAR COMO UN SUPER USUARIO.
+// ESTE SUPER USUARIO TENEMOS QUE CREARLO DESDE ATLAS EN "Database Access" y tener los roles:
+// atlasAdmin@admin
+// dbAdminAnyDatabase@admin
+
+async function main() {
   /**
    * Connection URI. Update <username>, <password>, and <your-cluster-url> to reflect your cluster.
    * See https://docs.mongodb.com/drivers/node/ for more details
@@ -49,9 +75,6 @@ async function main() {
   /**
    * The Mongo Client you will use to interact with your database
    * See https://mongodb.github.io/node-mongodb-native/3.6/api/MongoClient.html for more details
-   * In case: '[MONGODB DRIVER] Warning: Current Server Discovery and Monitoring engine is deprecated...'
-   * pass option { useUnifiedTopology: true } to the MongoClient constructor.
-   * const client =  new MongoClient(uri, {useUnifiedTopology: true})
    */
   const client = new MongoClient(uri);
 
@@ -59,19 +82,8 @@ async function main() {
     // Connect to the MongoDB cluster
     await client.connect();
 
-    // Make the appropriate DB calls
-
-    await createReservation(
-      client,
-      "leslie@example.com",
-      "New York City - Upper West Side Apt",
-      [new Date("2019-12-31"), new Date("2020-01-01")],
-      {
-        pricePerNight: 180,
-        specialRequests: "Late checkout",
-        breakfastIncluded: true,
-      }
-    );
+    // Transfer $100 from "account2" to "account1"
+    await transferMoney(client, "account1", "account3", 100);
   } finally {
     // Close the connection to the MongoDB cluster
     await client.close();
@@ -81,42 +93,17 @@ async function main() {
 main().catch(console.error);
 
 /**
- * Create a reservation by storing information in both the users collection and the listingsAndReviews collection
- * Note: this function assumes there is only one Airbnb listing in the collection with the given name.  If more than
- * listing exists with the given name, a reservation will be created for the first listing the database finds.
- * @param {MongoClient} client A MongoClient that is connected to a cluster with the sample_airbnb database
- * @param {String} userEmail The email address of the user who is creating the reservation
- * @param {String} nameOfListing The name of the Airbnb listing to be reserved
- * @param {Array.Date} reservationDates An array of the date(s) for the reservation
- * @param {Object} reservationDetails An object containing additional reservation details that need to be stored with the reservation
+ * Transfer money from one bank account to another using
+ * @param {MongoClient} client A MongoClient that is connected to a cluster with the banking database
+ * @param {String} account1 The _id of the account where money should be subtracted
+ * @param {String} account2 The _id of the account where money should be added
+ * @param {Number} amount The amount of money to be transferred
  */
-async function createReservation(
-  client,
-  userEmail,
-  nameOfListing,
-  reservationDates,
-  reservationDetails
-) {
+async function transferMoney(client, account1, account2, amount) {
   /**
-   * The users collection in the sample_airbnb database
+   * The accounts collection in the banking database
    */
-  const usersCollection = client.db("sample_airbnb").collection("users");
-
-  /**
-   * The listingsAndReviews collection in the sample_airbnb database
-   */
-  const listingsAndReviewsCollection = client
-    .db("sample_airbnb")
-    .collection("listingsAndReviews");
-
-  /**
-   * The reservation document that will be added to the users collection document for this user
-   */
-  const reservation = createReservationDocument(
-    nameOfListing,
-    reservationDates,
-    reservationDetails
-  );
+  const accountsCollection = client.db("banking").collection("accounts");
 
   // Step 1: Start a Client Session
   // See https://mongodb.github.io/node-mongodb-native/3.6/api/MongoClient.html#startSession for the startSession() docs
@@ -136,86 +123,57 @@ async function createReservation(
     const transactionResults = await session.withTransaction(async () => {
       // Important:: You must pass the session to each of the operations
 
-      // Add a reservation to the reservations array for the appropriate document in the users collection
-      const usersUpdateResults = await usersCollection.updateOne(
-        { email: userEmail },
-        { $addToSet: { reservations: reservation } },
+      // Remove the money from the first account
+      const subtractMoneyResults = await accountsCollection.updateOne(
+        { _id: account1 },
+        { $inc: { balance: amount * -1 } },
         { session }
       );
       console.log(
-        `${usersUpdateResults.matchedCount} document(s) found in the users collection with the email address ${userEmail}.`
+        `${subtractMoneyResults.matchedCount} document(s) found in the accounts collection with _id ${account1}.`
       );
       console.log(
-        `${usersUpdateResults.modifiedCount} document(s) was/were updated to include the reservation.`
+        `${subtractMoneyResults.modifiedCount} document(s) was/were updated to remove the money.`
       );
-
-      // Check if the Airbnb listing is already reserved for those dates. If so, abort the transaction.
-      const isListingReservedResults =
-        await listingsAndReviewsCollection.findOne(
-          { name: nameOfListing, datesReserved: { $in: reservationDates } },
-          { session }
-        );
-      if (isListingReservedResults) {
+      if (subtractMoneyResults.modifiedCount !== 1) {
         await session.abortTransaction();
-        console.error(
-          "This listing is already reserved for at least one of the given dates. The reservation could not be created."
-        );
-        console.error(
-          "Any operations that already occurred as part of this transaction will be rolled back."
-        );
         return;
       }
 
-      //  Add the reservation dates to the datesReserved array for the appropriate document in the listingsAndRewiews collection
-      const listingsAndReviewsUpdateResults =
-        await listingsAndReviewsCollection.updateOne(
-          { name: nameOfListing },
-          { $addToSet: { datesReserved: { $each: reservationDates } } },
-          { session }
-        );
-      console.log(
-        `${listingsAndReviewsUpdateResults.matchedCount} document(s) found in the listingsAndReviews collection with the name ${nameOfListing}.`
+      // Add the money to the second account
+      const addMoneyResults = await accountsCollection.updateOne(
+        { _id: account2 },
+        { $inc: { balance: amount } },
+        { session }
       );
       console.log(
-        `${listingsAndReviewsUpdateResults.modifiedCount} document(s) was/were updated to include the reservation dates.`
+        `${addMoneyResults.matchedCount} document(s) found in the accounts collection with _id ${account2}.`
       );
+      console.log(
+        `${addMoneyResults.modifiedCount} document(s) was/were updated to add the money.`
+      );
+      if (addMoneyResults.modifiedCount !== 1) {
+        await session.abortTransaction();
+        return;
+      }
     }, transactionOptions);
 
     if (transactionResults) {
-      console.log("The reservation was successfully created.");
+      console.log(
+        "The money was successfully transferred. Database operations from the transaction are now visible outside the transaction."
+      );
     } else {
-      console.log("The transaction was intentionally aborted.");
+      console.log(
+        "The money was not transferred. The transaction was intentionally aborted."
+      );
     }
   } catch (e) {
-    console.log("The transaction was aborted due to an unexpected error: " + e);
+    console.log(
+      "The money was not transferred. The transaction was aborted due to an unexpected error: " +
+        e
+    );
   } finally {
     // Step 4: End the session
     await session.endSession();
   }
-}
-
-/**
- * A helper function that generates a reservation document
- * @param {String} nameOfListing The name of the Airbnb listing to be reserved
- * @param {Array.Date} reservationDates An array of the date(s) for the reservation
- * @param {Object} reservationDetails An object containing additional reservation details that need to be stored with the reservation
- * @returns {Object} The reservation document
- */
-function createReservationDocument(
-  nameOfListing,
-  reservationDates,
-  reservationDetails
-) {
-  // Create the reservation
-  let reservation = {
-    name: nameOfListing,
-    dates: reservationDates,
-  };
-
-  // Add additional properties from reservationDetails to the reservation
-  for (let detail in reservationDetails) {
-    reservation[detail] = reservationDetails[detail];
-  }
-
-  return reservation;
 }
