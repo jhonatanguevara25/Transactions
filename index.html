@@ -4,149 +4,50 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>BOLAS RICAS</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <title>Registro</title>
+    <link rel="icon" href="../images/logoD3.png" />
   </head>
   <body>
-    <button value="HOLI" id="buton">HOLA</button>
-    <script async>
-      const { MongoClient } = require("mongodb");
+    <header>
+      <div class="container-nav">
+        <a href="#"
+          ><img class="logo" src="../images/logoD1.png" alt="Logo"
+        /></a>
+        <nav>
+          <ul>
+            <li><a href="/">INICIO</a></li>
+          </ul>
+        </nav>
+      </div>
+    </header>
 
-      document.getElementById("buton").onclick = async () => {
-        console.log("Me han tocao");
-        const uri =
-          "mongodb+srv://bratty289:YGTl63QI@pruebamongo.lnhsrdp.mongodb.net/test";
+    <main>
+      <div class="cuenta">
+        <input type="text" name="" id="cuenta1" readonly />
+        <p>Cuenta 1</p>
+      </div>
 
-        const client = new MongoClient(uri);
-
-        try {
-          // Connect to the MongoDB cluster
-          await client.connect();
-
-          // Make the appropriate DB calls
-
-          await createReservation(
-            client,
-            "leslie@example.com",
-            "New York City - Upper West Side Apt",
-            [new Date("2019-12-31"), new Date("2020-01-01")],
-            {
-              pricePerNight: 180,
-              specialRequests: "Late checkout",
-              breakfastIncluded: true,
-            }
-          );
-        } finally {
-          // Close the connection to the MongoDB cluster
-          await client.close();
-        }
-      };
-
-      async function createReservation(
-        client,
-        userEmail,
-        nameOfListing,
-        reservationDates,
-        reservationDetails
-      ) {
-        const usersCollection = client.db("sample_airbnb").collection("users");
-
-        const listingsAndReviewsCollection = client
-          .db("sample_airbnb")
-          .collection("listingsAndReviews");
-
-        const reservation = createReservationDocument(
-          nameOfListing,
-          reservationDates,
-          reservationDetails
-        );
-
-        const session = client.startSession();
-
-        const transactionOptions = {
-          readPreference: "primary",
-          readConcern: { level: "local" },
-          writeConcern: { w: "majority" },
-        };
-
-        try {
-          const transactionResults = await session.withTransaction(async () => {
-            const usersUpdateResults = await usersCollection.updateOne(
-              { email: userEmail },
-              { $addToSet: { reservations: reservation } },
-              { session }
-            );
-            console.log(
-              `${usersUpdateResults.matchedCount} document(s) found in the users collection with the email address ${userEmail}.`
-            );
-            console.log(
-              `${usersUpdateResults.modifiedCount} document(s) was/were updated to include the reservation.`
-            );
-
-            const isListingReservedResults =
-              await listingsAndReviewsCollection.findOne(
-                {
-                  name: nameOfListing,
-                  datesReserved: { $in: reservationDates },
-                },
-                { session }
-              );
-            if (isListingReservedResults) {
-              await session.abortTransaction();
-              console.error(
-                "This listing is already reserved for at least one of the given dates. The reservation could not be created."
-              );
-              console.error(
-                "Any operations that already occurred as part of this transaction will be rolled back."
-              );
-              return;
-            }
-
-            const listingsAndReviewsUpdateResults =
-              await listingsAndReviewsCollection.updateOne(
-                { name: nameOfListing },
-                { $addToSet: { datesReserved: { $each: reservationDates } } },
-                { session }
-              );
-            console.log(
-              `${listingsAndReviewsUpdateResults.matchedCount} document(s) found in the listingsAndReviews collection with the name ${nameOfListing}.`
-            );
-            console.log(
-              `${listingsAndReviewsUpdateResults.modifiedCount} document(s) was/were updated to include the reservation dates.`
-            );
-          }, transactionOptions);
-
-          if (transactionResults) {
-            console.log("The reservation was successfully created.");
-          } else {
-            console.log("The transaction was intentionally aborted.");
-          }
-        } catch (e) {
-          console.log(
-            "The transaction was aborted due to an unexpected error: " + e
-          );
-        } finally {
-          // Step 4: End the session
-          await session.endSession();
-        }
-      }
-
-      function createReservationDocument(
-        nameOfListing,
-        reservationDates,
-        reservationDetails
-      ) {
-        // Create the reservation
-        let reservation = {
-          name: nameOfListing,
-          dates: reservationDates,
-        };
-
-        for (let detail in reservationDetails) {
-          reservation[detail] = reservationDetails[detail];
-        }
-
-        return reservation;
-      }
-    </script>
+      <div class="buttons">
+        <button onclick="transferir(1)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+            <path
+              d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zM8.711 4.3l5.7 5.766L8.7 15.711l-1.4-1.422 4.289-4.242-4.3-4.347z"
+            />
+          </svg>
+        </button>
+        <button onclick="transferir(2)">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20">
+            <path
+              d="M10 20A10 10 0 1 0 0 10a10 10 0 0 0 10 10zm1.289-15.7 1.422 1.4-4.3 4.344 4.289 4.245-1.4 1.422-5.714-5.648z"
+            />
+          </svg>
+        </button>
+      </div>
+      <div class="cuenta">
+        <input type="text" name="" id="cuenta2" readonly />
+        <p>Cuenta 2</p>
+      </div>
+    </main>
   </body>
 </html>
